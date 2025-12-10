@@ -1,142 +1,102 @@
 "use client";
 
 import { useState } from "react";
-import { DiagramMode, DiagramResponse } from "@/lib/types";
+import { motion } from "framer-motion";
+import { DiagramType, DiagramResponse } from "@/lib/types";
 
 interface TextInputPanelProps {
-  onGenerate: (diagram: DiagramResponse) => void;
-  onError: (message: string) => void;
+  onGenerate: (text: string, diagramType: DiagramType) => Promise<void>;
+  diagramType: DiagramType;
 }
 
-export default function TextInputPanel({
-  onGenerate,
-  onError,
-}: TextInputPanelProps) {
+export function TextInputPanel({ onGenerate, diagramType }: TextInputPanelProps) {
   const [text, setText] = useState("");
-  const [mode, setMode] = useState<DiagramMode>("auto");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
+  const [quickNotes, setQuickNotes] = useState<string | null>(null);
 
-  const handleGenerate = async () => {
-    if (!text.trim()) {
-      onError("Please enter some text first");
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!text.trim()) return;
 
-    setLoading(true);
-
+    setIsLoading(true);
     try {
-      const response = await fetch("/api/generate-diagram", {
+      await onGenerate(text, diagramType);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickNotes = async () => {
+    if (!text.trim()) return;
+
+    setIsGeneratingNotes(true);
+    try {
+      const response = await fetch("/api/quick-notes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text, mode }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to generate diagram");
-      }
-
-      const diagram: DiagramResponse = await response.json();
-      onGenerate(diagram);
+      const data = await response.json();
+      setQuickNotes(data.notes);
     } catch (error) {
-      console.error("Error generating diagram:", error);
-      onError("Something went wrong while generating the diagram.");
+      console.error("Error generating quick notes:", error);
+      alert("Failed to generate quick notes. Please try again.");
     } finally {
-      setLoading(false);
+      setIsGeneratingNotes(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Enter or paste your text:
-        </label>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-6 bg-background border border-foreground/10 rounded-xl shadow-lg"
+    >
+      <h3 className="text-xl font-semibold mb-4">Text to Diagram</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder='Example: "OSI model has 7 layers: Physical, Data Link, Network, Transport, Session, Presentation, Application. Each layer has its own function."'
-          className="w-full h-48 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          disabled={loading}
+          placeholder="Enter your text here... For example: 'Start the process, then check if condition is met. If yes, proceed to next step. Otherwise, return to start.'"
+          className="w-full h-32 p-4 bg-background border border-foreground/20 rounded-lg focus:outline-none focus:border-primary resize-none"
+          disabled={isLoading}
         />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Diagram Type:
-        </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="auto"
-              checked={mode === "auto"}
-              onChange={(e) => setMode(e.target.value as DiagramMode)}
-              disabled={loading}
-              className="mr-2"
-            />
-            Auto Detect (default)
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="flow"
-              checked={mode === "flow"}
-              onChange={(e) => setMode(e.target.value as DiagramMode)}
-              disabled={loading}
-              className="mr-2"
-            />
-            Linear Flow
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="hierarchy"
-              checked={mode === "hierarchy"}
-              onChange={(e) => setMode(e.target.value as DiagramMode)}
-              disabled={loading}
-              className="mr-2"
-            />
-            Hierarchy
-          </label>
+        <div className="flex gap-2">
+          <motion.button
+            type="button"
+            onClick={handleQuickNotes}
+            disabled={isGeneratingNotes || !text.trim()}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGeneratingNotes ? "Generating..." : "Get Quick Notes"}
+          </motion.button>
+          <motion.button
+            type="submit"
+            disabled={isLoading || !text.trim()}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Generating..." : "Generate Diagram"}
+          </motion.button>
         </div>
-      </div>
+      </form>
 
-      <button
-        onClick={handleGenerate}
-        disabled={loading}
-        className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
-      >
-        {loading ? (
-          <>
-            <svg
-              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            Generating...
-          </>
-        ) : (
-          "Generate Diagram"
-        )}
-      </button>
-    </div>
+      {quickNotes && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20"
+        >
+          <p className="text-sm font-semibold mb-2">Quick Notes:</p>
+          <pre className="text-sm text-foreground/70 whitespace-pre-wrap">{quickNotes}</pre>
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
 

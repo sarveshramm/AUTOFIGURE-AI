@@ -1,43 +1,24 @@
-/**
- * API endpoint: POST /api/generate-diagram
- * Converts text into a diagram structure based on selected mode
- */
 import { NextRequest, NextResponse } from "next/server";
-import { GenerateDiagramRequest, DiagramMode } from "@/lib/types";
-import {
-  buildLinearFlowFromText,
-  buildHierarchyFromText,
-  autoDetectDiagram,
-} from "@/lib/diagramBuilder";
+import { buildDiagram, autoDetectDiagramType } from "@/lib/diagramBuilders";
+import { GenerateDiagramRequest, DiagramType } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateDiagramRequest = await request.json();
-    const { text, mode } = body;
+    const { text, diagramType } = body;
 
-    // Validate input
-    if (!text || typeof text !== "string" || text.trim().length === 0) {
+    if (!text || text.trim().length === 0) {
       return NextResponse.json(
-        { error: "Text is required and cannot be empty" },
+        { error: "Text input is required" },
         { status: 400 }
       );
     }
 
-    let diagram;
-
-    // Build diagram based on mode
-    switch (mode) {
-      case "flow":
-        diagram = buildLinearFlowFromText(text);
-        break;
-      case "hierarchy":
-        diagram = buildHierarchyFromText(text);
-        break;
-      case "auto":
-      default:
-        diagram = autoDetectDiagram(text);
-        break;
-    }
+    // Use provided diagramType or auto-detect
+    const type: DiagramType = diagramType || autoDetectDiagramType(text);
+    
+    // Build the diagram
+    const diagram = buildDiagram(text, type);
 
     return NextResponse.json(diagram);
   } catch (error) {

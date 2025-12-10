@@ -1,29 +1,29 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
-const inter = Inter({ subsets: ["latin"] });
+import { ThemeProvider } from "@/lib/theme";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "AutoDiagram - Turn text into diagrams",
-  description: "Convert your text and notes into easy diagrams for exam preparation",
+  title: "AUTOFIGURE-AI - Transform Text to Diagrams",
+  description: "Transform text and images into beautiful, professional diagrams with AI-powered intelligence",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-        </div>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ThemeProvider>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
