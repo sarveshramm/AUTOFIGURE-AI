@@ -1,0 +1,7 @@
+{
+  "/api/generate-diagram/route": "app/api/generate-diagram/route.js",
+  "/page": "app/page.js",
+  "/api/diagram-chat/route": "app/api/diagram-chat/route.js",
+  "/diagram/page": "app/diagram/page.js",
+  "/account/diagrams/page": "app/account/diagrams/page.js"
+}
