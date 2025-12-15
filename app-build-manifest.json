@@ -16,6 +16,11 @@
       "static/chunks/main-app.js",
       "static/css/app/diagram/page.css",
       "static/chunks/app/diagram/page.js"
+    ],
+    "/account/diagrams/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/account/diagrams/page.js"
     ]
   }
 }
