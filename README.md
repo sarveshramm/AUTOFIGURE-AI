@@ -5,7 +5,7 @@
 
 ---
 
-## 📘 Project Description  
+## 📘 Project Description
 **AUTOFIGURE-AI** is an intelligent, AI-assisted diagram generator that converts **text or image inputs** into clean, structured, and visually rich diagrams.  
 It is designed to help **students, engineers, educators, and professionals** quickly understand and present complex concepts using auto-generated visual diagrams with themes, animations, and smart coloring.
 
