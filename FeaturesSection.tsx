@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-const features = [
+const features = [ 
   {
     title: "12 Diagram Types",
     description: "Flowcharts, Sequence, Class, State, ER, User Journey, Pie Charts, Quadrants, Timelines, Sankey, XY Charts, and Block Diagrams",
